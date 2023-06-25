@@ -1,0 +1,56 @@
+@using Dapper;
+@using MySqlConnector;
+
+@inject MySqlConnection DbConnection;
+
+@page "/empleados"
+
+<PageTitle>Listado de empleados</PageTitle>
+
+<div class="container">
+    <div class="row">
+        @foreach (var datum in data)
+        {
+            <div class="alert alert-secondary">
+                <h4 class="alert-heading"><b>@datum.Apellido</b>, @datum.Nombre</h4>
+                <p>Legajo: @datum.Legajo</p>
+                <p>Fecha de nacimiento: @datum.F_nac.ToShortDateString()</p>
+                <p>Teléfono: @datum.Nro_tel</p>
+                <hr>
+                <p class="mb-0">Empleado con seguridad @datum.Desc_seg.ToUpper()</p>
+            </div>
+        }
+    </div>
+</div>
+
+@code{
+    private record Empleado(int Legajo,
+                            string Nombre,
+                            string Apellido,
+                            DateTime F_nac,
+                            string Nro_tel,
+                            int Nivel_seg,
+                            string Desc_seg);
+
+    private static string query = @"
+        SELECT
+            Legajo,
+            Nombre,
+            Apellido,
+            F_nac,
+            Nro_tel,
+            Nivel AS Nivel_seg,
+            Descripcion AS Desc_seg
+        FROM Empleado E
+        INNER JOIN Seguridad S
+            ON E.Id_seg = S.Id_seg
+        ORDER BY Apellido;
+    ";
+
+    private List<Empleado> data = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        data = (await DbConnection.QueryAsync<Empleado>(query)).ToList();
+    }
+}

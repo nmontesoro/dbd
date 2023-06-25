@@ -1,0 +1,34 @@
+@using dbd.Models;
+
+<div class='container'>
+    <div class="row">
+        @if (UnderlyingData.Count == 0) {
+            <div class="alert alert-success">
+                <h4 class="alert-heading">¡Todo correcto!</h4>
+                <p>
+                    Parece que está todo bien por aquí. Eso, o todavía
+                    no terminé de cargar los datos.
+                </p>
+            </div>
+        } else {
+            @foreach (var datum in UnderlyingData)
+            {
+                <div class="alert alert-warning">
+                    <h4 class="alert-heading">@datum.nombre_area</h4>
+                    <p>
+                        <b>@datum.nombre_completo</b> (leg. @datum.legajo) intentó
+                        acceder al área de @datum.nombre_area (@datum.nro_area).
+                    </p>
+                </div>
+            }
+        }
+        </div>
+</div>
+
+@code
+{
+    #nullable disable
+    
+    [Parameter]
+    public List<Auditoria> UnderlyingData { get; set;}
+}

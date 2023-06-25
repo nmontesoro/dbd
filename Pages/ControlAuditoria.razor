@@ -1,0 +1,75 @@
+@using Dapper;
+@using MySqlConnector;
+@using dbd.Models;
+@using dbd.Shared;
+
+@inject MySqlConnection DbConnection;
+
+@page "/auditoria"
+
+<PageTitle>Auditoría de accesos</PageTitle>
+
+<div class="container">
+    <div class="row">
+        <div class="col-sm">
+            <h1>Consigna 2</h1>
+
+            <p>
+                Mediante una vista obtener los empleados que en el día de la fecha han
+                realizado algún intento de ingreso fallido a un área sin contar con un
+                ingreso exitoso posterior para la misma. Incluir el área donde intentó
+                ingresar en las columnas que devuelve la vista.
+            </p>
+
+            <AuditoriaComponent UnderlyingData="data2" />
+        </div>
+
+        <div class="col-sm">
+            <h1>Consigna 3</h1>
+
+            <p>
+                Obtener los datos personales de los empleados que en los últimos 30 días cuentan
+con una cantidad de intentos fallidos mayor a 5 o con al menos un intento de ingreso
+en un área cuyo nivel de seguridad sea superior al que tienen asignado.
+            </p>
+
+            <AuditoriaComponent UnderlyingData="data3" />
+        </div>
+    </div>
+</div>
+
+@code{
+    private static string query2 = @"
+        SELECT
+            V.Legajo,
+            V.Nro_area,
+            CONCAT(E.Apellido, ' ', E.Nombre) AS nombre_completo,
+            A.Nombre AS nombre_area
+        FROM Laboratorio.VST_AuditAccesos V
+        INNER JOIN Empleado E
+            ON V.Legajo = E.Legajo
+        INNER JOIN Area A
+            ON V.Nro_area = A.Nro_area;
+    ";
+
+    private static string query3 = @"
+        SELECT
+            V.Legajo,
+            V.Nro_area,
+            CONCAT(E.Apellido, ' ', E.Nombre) AS nombre_completo,
+            A.Nombre AS nombre_area
+        FROM Laboratorio.VST_AccesosInfructuosos30dias V
+        INNER JOIN Empleado E
+            ON V.Legajo = E.Legajo
+        INNER JOIN Area A
+            ON V.Nro_area = A.Nro_area;
+    ";
+    private List<Auditoria> data2 = new(),
+                                 data3 = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        data2 = (await DbConnection.QueryAsync<Auditoria>(query2)).ToList();
+        data3 = (await DbConnection.QueryAsync<Auditoria>(query3)).ToList();
+    }
+}
